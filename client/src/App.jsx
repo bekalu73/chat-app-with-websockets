@@ -19,6 +19,11 @@ function App() {
     socket.on("message", (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
     });
+    // Clean up the event listeners on unmount
+    return () => {
+      socket.off("loadMessages");
+      socket.off("message");
+    };
   }, []);
 
   const joinRoom = () => {
