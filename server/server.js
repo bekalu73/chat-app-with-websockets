@@ -5,10 +5,16 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
 const Message = require("./models/Message");
+const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "DELETE", "PUT"],
+  },
+});
 
 //connect to DB
 mongoose
@@ -18,6 +24,7 @@ mongoose
 
 //middleware
 app.use(express.json());
+app.use(cors());
 
 // Routes
 app.get("/", (req, res) => {
