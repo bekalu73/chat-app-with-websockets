@@ -35,16 +35,20 @@ app.get("/", (req, res) => {
 io.on("connection", (socket) => {
   console.log("New client connected");
 
-  // Load existing messages
-  Message.find().then((messages) => {
-    socket.emit("loadMessages", messages);
+  // Join a room
+  socket.on("joinRoom", (room) => {
+    socket.join(room);
+    // Load existing messages
+    Message.find({ room }).then((messages) => {
+      socket.emit("loadMessages", messages);
+    });
   });
 
-  // Handle new messages
+  // Handle messages
   socket.on("sendMessage", (data) => {
     const newMessage = new Message(data);
     newMessage.save().then(() => {
-      io.emit("message", data);
+      io.to(data.room).emit("message", data);
     });
   });
 

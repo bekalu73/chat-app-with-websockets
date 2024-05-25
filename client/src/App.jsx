@@ -6,9 +6,10 @@ const ENDPOINT = "http://localhost:5000";
 const socket = socketIOClient(ENDPOINT);
 
 function App() {
-  const [messages, setMessages] = useState([]);
   const [name, setName] = useState("");
+  const [room, setRoom] = useState("");
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     socket.on("loadMessages", (data) => {
@@ -19,18 +20,24 @@ function App() {
       setMessages((prevMessages) => [...prevMessages, data]);
     });
   }, []);
+
+  const joinRoom = () => {
+    if (name && room) {
+      socket.emit("joinRoom", room);
+    }
+  };
+
   const sendMessage = () => {
-    if (name && message) {
-      const newMessage = { name, message };
+    if (name && message && room) {
+      const newMessage = { name, message, room, timestamp: new Date() };
       socket.emit("sendMessage", newMessage);
       setMessage("");
     }
   };
-
   return (
-    <div>
-      <h1>Chat App</h1>
-      <div>
+    <div className="chat-container">
+      <div className="chat-header">
+        <h1>Chat App</h1>
         <input
           type="text"
           placeholder="Name"
@@ -39,19 +46,31 @@ function App() {
         />
         <input
           type="text"
+          placeholder="Room"
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+        />
+        <button onClick={joinRoom}>Join Room</button>
+      </div>
+      <div className="chat-box">
+        {messages.map((msg, index) => (
+          <div key={index} className="chat-message">
+            <strong>{msg.name}: </strong>
+            {msg.message}
+            <span className="timestamp">
+              {new Date(msg.timestamp).toLocaleTimeString()}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="chat-input">
+        <input
+          type="text"
           placeholder="Message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
         />
         <button onClick={sendMessage}>Send</button>
-      </div>
-      <div>
-        {messages.map((msg, index) => (
-          <div key={index}>
-            <strong>{msg.name}: </strong>
-            {msg.message}
-          </div>
-        ))}
       </div>
     </div>
   );
